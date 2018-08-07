@@ -1,0 +1,30 @@
+	{
+		"0" : { 
+			"0" : "How long have cats been domesticated?",
+		    "1" : "*4000 years:2000 years:500 years:200 years" 
+		},
+		"1" : { 
+			"0" : "Can cats really see in the dark?",
+		    "1" : "*Yes:No"
+		},
+		"2" : { 
+			"0" : "How many teeth do cats have?",
+			"1" : "*30:24:16:42"
+		},
+		"3" : { 
+			"0" : "Are most cats left-pawed or right?",
+			"1" : "*left-pawed:right-pawed"
+		},
+		"4" : { 
+			"0" : "Jack Wright has the record for the most cats owned. How many?", 
+			"1" : "*689:253:189:84" 
+		},
+		"5" : { 
+			"0" : "How fast can cats run?",
+			"1" : "*30kmph:20kmph:35kmph:17kmph"
+		},
+		"6" : { 
+			"0" : "Some cats can survive a fall as high as 65ft",
+			"1" : "*True:False" 
+		}
+	}
