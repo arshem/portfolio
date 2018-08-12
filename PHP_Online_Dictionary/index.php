@@ -1,32 +1,14 @@
 <?php
   if(isset($_POST["word"]) && isset($_POST["searchType"]) && !empty($_POST["word"])) {
-    $apiUrl = "https://od-api.oxforddictionaries.com/api/v1/entries/en/";
-    $appKey = "APP_KEY";
-    $appId = "APP_ID";
-    switch($_POST["searchType"]) {
-      case 'dictionary':
-        $apiUrl = $apiUrl.strtolower(urlencode($_POST["word"]));
-      break;
-/*
-      case 'thesaurus':
-        $apiUrl = $apiUrl.strtolower(urlencode($_POST["word"]))."/synonyms;antonyms";
-      break;
-      case 'translate':
-        $apiUrl = $apiUrl.strtolower(urlencode($_POST["word"]))."/translations=es";
-*/
-    }
-
-    $ch = curl_init($apiUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    $headers = [
-      "Accept: application/json",
-      "app_id:".$appId,
-      "app_key:".$appKey
-    ];
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    $output = curl_exec($ch);
-    curl_close($ch);
-    $info = json_decode($output,true);
+  	include("include/OxfordAPI.php");
+  	include("config.php");
+  	if(isset($_POST["lang2"]) && in_array($_POST["lang2"],['en', 'es', 'lv', 'nso', 'zu', 'ms', 'id', 'tn', 'hi', 'ur', 'sw', 'ro'])) {
+  		$lang2 = $_POST["lang2"];
+  	} else {
+  		$lang2 = $config["lang2"];
+  	}
+  	$OxfordAPI = new OxfordAPI($_POST["searchType"],$_POST["word"],$config["lang1"],$lang2);
+  	$result = $OxfordAPI->get($config["app_id"],$config["app_key"]);
   }
 ?>
 <!doctype html>
@@ -45,7 +27,7 @@
     <link href="style.css" rel="stylesheet">
   </head>
 
-  <body class="text-center">
+  <body>
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
       <header class="masthead mb-auto">
         <div class="inner">
@@ -54,33 +36,31 @@
       </header>
 
       <main role="main" class="inner cover">
-        <?php if(isset($info)) { ?>
+        <?php if(isset($result)) { ?>
         <div class="card text-white bg-dark mb-3">
           <div class="card-body">
-            <h1>Results</h1>
-              <?php
-              foreach($info["results"] as $res) { 
-                if(is_array($res["lexicalEntries"]))
-                  foreach($res["lexicalEntries"] as $lex) {
-                    if(is_array($lex["entries"]))
-                      foreach($lex["entries"] as $ent) { 
-                        if(is_array($ent["etymologies"]))
-                          foreach($ent["etymologies"] as $ety) {
-                            if(is_array($ent["senses"]))
-                              foreach($ent["senses"] as $senses) {
-                                if(is_array($senses["definitions"]))
-                                  foreach($senses["definitions"] as $defs) {
-              ?>
+            <h1 class="text-center"><?=strtoupper($_POST["word"]);?></h1>
             <p class="card text-white bg-dark mb-3 text-justify">
-                <?=$res["id"];?> <?=$lex["lexicalCategory"];?> <br />
-                Etymology: <?=$ety;?><br />
-                Definition: <?=$defs;?><br />
-              <?php }}}}}} ?>
+               <?php
+               if(!isset($result["synonyms"]) && is_array($result)) {
+	               foreach($result as $res) {
+	                   	echo "<li>".$res."</li>";
+		           }
+		        } elseif(isset($result["synonyms"]) || isset($result["antonyms"])) {
+
+		        	if(isset($result["synonyms"]))
+		            	echo "<p><strong>Synonyms: ".rtrim(implode(", ",$result["synonyms"]),',')."</strong></p>";
+		            if(isset($result["antonyms"]))
+		            	echo "<p><strong>Antonyms: ".rtrim(implode(", ",$result["antonyms"]),",")."</strong></p>";
+	            } else {
+	            	echo $config[$result];
+	            }
+               ?>
             </p>
           </div>
         </div>
       <?php } ?>
-        <div class="card text-white bg-dark mb-3">
+        <div class="card text-white bg-dark mb-3 text-center">
           <div class="card-body">
             <h1>Online Dictionary</h1>
             <p class="card text-white bg-dark mb-3">
@@ -95,8 +75,16 @@
                   <label class="form-check-label" for="inlineRadio2">Thesaurus</label>
                 </div>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="searchType" id="inlineRadio3" value="translate">
-                  <label class="form-check-label" for="inlineRadio3">Translate</label>
+                  <input class="form-check-input" type="radio" name="searchType" id="inlineRadio3" value="translate">&nbsp; 
+                  <label class="form-check-label" for="inlineRadio3">Translate</label>&nbsp;
+                  <select name="lang2">
+                  	<?php
+                  		$languages = array('en', 'es', 'lv', 'nso', 'zu', 'ms', 'id', 'tn', 'hi', 'ur', 'sw', 'ro');
+                  		foreach($languages as $langs) {
+                  			echo "<option value='".$langs.">".$langs."</option>";
+                  		}
+                  	?>
+                  </select>
                 </div><br />
                 <input type="submit" class="btn" value="Search" />
               </form>
